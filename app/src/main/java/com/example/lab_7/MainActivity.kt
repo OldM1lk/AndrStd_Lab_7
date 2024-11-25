@@ -33,8 +33,8 @@ class MainActivity : AppCompatActivity() {
 
         Timber.plant(Timber.DebugTree())
 
-        lateinit var adapter: ContactAdapter
-        lateinit var allContacts: List<Contact>
+        val adapter = ContactAdapter()
+        var allContacts: List<Contact> = emptyList()
         val etSearch: EditText = findViewById(R.id.et_search)
         val rView: RecyclerView = findViewById(R.id.rView)
         rView.layoutManager = LinearLayoutManager(this)
@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
                 val contacts = parseContacts()
                 allContacts = contacts
                 withContext(Dispatchers.Main) {
-                    adapter = ContactAdapter(contacts)
+                    adapter.submitList(contacts)
                     rView.adapter = adapter
                 }
             }
@@ -60,8 +60,9 @@ class MainActivity : AppCompatActivity() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                val filteredContacts = filterContacts(allContacts, s.toString())
-                adapter.updateContacts(filteredContacts)
+                val filteredContacts = filterContacts(allContacts, etSearch.text.toString())
+                adapter.submitList(filteredContacts)
+                adapter.notifyDataSetChanged()
             }
         })
     }

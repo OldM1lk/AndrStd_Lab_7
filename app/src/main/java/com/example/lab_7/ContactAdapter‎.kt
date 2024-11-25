@@ -1,18 +1,32 @@
 package com.example.lab_7
 
-import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
-class ContactAdapter(private var contacts: List<Contact>) : RecyclerView.Adapter<ContactAdapter.ViewHolder>() {
+class ContactAdapter : ListAdapter<Contact, ContactAdapter.ViewHolder>(ContactItemDiffCallback()) {
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val name: TextView = view.findViewById(R.id.textName)
-        val phone: TextView = view.findViewById(R.id.textPhone)
-        val type: TextView = view.findViewById(R.id.textType)
+        private val name: TextView = view.findViewById(R.id.textName)
+        private val phone: TextView = view.findViewById(R.id.textPhone)
+        private val type: TextView = view.findViewById(R.id.textType)
+
+        fun bind(contact: Contact) {
+            name.text = contact.name
+            phone.text = contact.phone
+            type.text = contact.type
+
+            itemView.setOnClickListener {
+                val dial = Intent(Intent.ACTION_DIAL)
+                dial.data = Uri.parse(("tel:${contact.phone}"))
+                itemView.context.startActivity(dial)
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -21,19 +35,6 @@ class ContactAdapter(private var contacts: List<Contact>) : RecyclerView.Adapter
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val contact = contacts[position]
-        holder.name.text = contact.name
-        holder.phone.text = contact.phone
-        holder.type.text = contact.type
-    }
-
-    override fun getItemCount(): Int {
-        return contacts.size
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    fun updateContacts(newContacts: List<Contact>) {
-        contacts = newContacts
-        notifyDataSetChanged()
+        holder.bind(getItem(position))
     }
 }
