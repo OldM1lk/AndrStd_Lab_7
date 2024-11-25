@@ -33,6 +33,7 @@ class MainActivity : AppCompatActivity() {
 
         Timber.plant(Timber.DebugTree())
 
+        val sharedPref = getSharedPreferences("app_preferences", MODE_PRIVATE)
         val adapter = ContactAdapter()
         var allContacts: List<Contact> = emptyList()
         val etSearch: EditText = findViewById(R.id.et_search)
@@ -44,7 +45,10 @@ class MainActivity : AppCompatActivity() {
                 val contacts = parseContacts()
                 allContacts = contacts
                 withContext(Dispatchers.Main) {
-                    adapter.submitList(contacts)
+                    val savedQuery = sharedPref.getString("SEARCH_FILTER", "")
+                    etSearch.setText(savedQuery)
+                    val filteredContacts = filterContacts(allContacts, savedQuery?:"")
+                    adapter.submitList(filteredContacts)
                     rView.adapter = adapter
                 }
             }
@@ -55,14 +59,17 @@ class MainActivity : AppCompatActivity() {
 
         etSearch.addTextChangedListener(object : TextWatcher {
 
-            override fun afterTextChanged(s: Editable?) {}
-
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 val filteredContacts = filterContacts(allContacts, etSearch.text.toString())
                 adapter.submitList(filteredContacts)
                 adapter.notifyDataSetChanged()
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                val query = etSearch.text.toString()
+                sharedPref.edit().putString("SEARCH_FILTER", query).apply()
             }
         })
     }
